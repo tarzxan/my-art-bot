@@ -1,5 +1,5 @@
 // Configuration
-const REPLICATE_API_TOKEN = 'r8_JgsNAJuVvWV1JDh90LziKuze13N3Anc36Tdap'; // Move to backend for production
+const REPLICATE_API_TOKEN = '000notreal'; // Move to backend for production
 let web3;
 let accounts = [];
 let contract;
