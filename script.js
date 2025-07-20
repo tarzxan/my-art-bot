@@ -1,20 +1,162 @@
-// Ensure you have a valid WalletConnect Project ID from https://cloud.walletconnect.com
-const REPLICATE_API_TOKEN = 'r8_JgsNAJuVvWV1JDh90LziKuze13N3Anc36Tdap'; // Move to backend for security
+// Configuration
+const REPLICATE_API_TOKEN = 'r8_JgsNAJuVvWV1JDh90LziKuze13N3Anc36Tdap'; // Move to backend for production
 let web3;
 let accounts = [];
-let contract; // Consistent variable name
+let contract;
 let walletConnectProvider;
 
 const contractAddress = '0xcc0aCe3b131E6a26bc16a34EF0277BDAbB24e9c9';
-const abi = [ /* Your provided ABI, unchanged */ ];
+const abi = [
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            }
+        ],
+        "name": "payForAccess",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_paymentReceiver",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            }
+        ],
+        "name": "hasAccess",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            }
+        ],
+        "name": "hasNFT",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "nftContract",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "PAYMENT_AMOUNT",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "paymentReceiver",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "tokenContract",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+];
 const tokenAddress = '0x92AF6F53fEbd6B4C6F5293840B6076A1B82c4BC2';
-const tokenAbi = [ /* Your provided token ABI, unchanged */ ];
+const tokenAbi = [
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "spender",
+                "type": "address"
+            },
+            {
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "approve",
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "type": "function"
+    }
+];
 const BASE_CHAIN_ID = 8453; // Base Mainnet
 
 // Initialize WalletConnect
 async function initWalletConnect() {
     try {
-        // Use window.EthereumProvider from CDN
         walletConnectProvider = await window.EthereumProvider.init({
             projectId: 'YOUR_WALLET_CONNECT_PROJECT_ID', // Replace with your real WalletConnect Project ID
             chains: [BASE_CHAIN_ID],
@@ -100,14 +242,16 @@ async function connectWalletConnect() {
 // Check Access
 async function checkAccess() {
     try {
-        document.getElementById('status').innerText = 'Checking access...';
+        const statusEl = document.getElementById('status');
+        if (!statusEl) throw new Error('Status element not found');
+        statusEl.innerText = 'Checking access...';
         const hasAccess = await contract.methods.hasAccess(accounts[0]).call();
         if (hasAccess) {
-            document.getElementById('status').innerText = 'Access granted via NFT';
+            statusEl.innerText = 'Access granted via NFT';
             document.getElementById('generator').style.display = 'block';
             document.getElementById('pay').style.display = 'none';
         } else {
-            document.getElementById('status').innerText = 'No NFT. Pay to proceed.';
+            statusEl.innerText = 'No NFT. Pay to proceed.';
             document.getElementById('pay').style.display = 'block';
             document.getElementById('generator').style.display = 'none';
         }
@@ -116,87 +260,108 @@ async function checkAccess() {
     }
 }
 
-// Pay for Access
-document.getElementById('pay').addEventListener('click', async () => {
-    try {
-        document.getElementById('status').innerText = 'Processing payment...';
-        const token = new web3.eth.Contract(tokenAbi, tokenAddress);
-        // Verify token decimals (assuming 18 for BIRDDOG; adjust if different)
-        const amount = web3.utils.toWei('100', 'ether'); // Confirm decimals with token contract
-        await token.methods.approve(contractAddress, amount).send({ from: accounts[0] });
-        await contract.methods.payForAccess(accounts[0]).send({ from: accounts[0] });
-        // Poll for transaction confirmation (Web3.js doesn't have .wait())
-        document.getElementById('status').innerText = 'Payment successful. Access granted.';
-        document.getElementById('generator').style.display = 'block';
-        document.getElementById('pay').style.display = 'none';
-    } catch (error) {
-        document.getElementById('status').innerText = 'Payment failed: ' + error.message;
-    }
-});
-
-// Generate Art
-document.getElementById('generate').addEventListener('click', async () => {
-    try {
-        document.getElementById('status').innerText = 'Generating art...';
-        const prompt = document.getElementById('prompt').value;
-        const imageFile = document.getElementById('image').files[0];
-        if (!imageFile) {
-            document.getElementById('status').innerText = 'Please upload an image';
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        const imageResponse = await fetch('https://api.imgur.com/3/image', {
-            method: 'POST',
-            body: formData,
-            headers: { Authorization: 'Client-ID 546c25a59c58ad7' } // Move to backend
-        }).then(res => res.json());
-        if (!imageResponse.success) throw new Error('Image upload failed');
-
-        const imageUrl = imageResponse.data.link;
-        const response = await fetch('https://api.replicate.com/v1/predictions', {
-            method: 'POST',
-            headers: {
-                Authorization: `Token ${REPLICATE_API_TOKEN}`, // Move to backend
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                version: 'lucataco/flux-kontext-dev:1.0', // Verify correct version
-                input: { prompt: prompt, image: imageUrl, steps: 20, guidance_scale: 2.5 }
-            })
-        }).then(res => res.json());
-
-        if (!response.urls?.get) throw new Error('Invalid Replicate API response');
-
-        let output;
-        while (true) {
-            const poll = await fetch(response.urls.get).then(res => res.json());
-            if (poll.status === 'succeeded') {
-                output = poll.output[0];
-                break;
+// DOMContentLoaded to ensure DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Pay for Access
+    const payButton = document.getElementById('pay');
+    if (payButton) {
+        payButton.addEventListener('click', async () => {
+            try {
+                const statusEl = document.getElementById('status');
+                if (!statusEl) throw new Error('Status element not found');
+                statusEl.innerText = 'Processing payment...';
+                const token = new web3.eth.Contract(tokenAbi, tokenAddress);
+                const amount = web3.utils.toWei('100', 'ether'); // Confirm decimals
+                await token.methods.approve(contractAddress, amount).send({ from: accounts[0] });
+                await contract.methods.payForAccess(accounts[0]).send({ from: accounts[0] });
+                statusEl.innerText = 'Payment successful. Access granted.';
+                document.getElementById('generator').style.display = 'block';
+                document.getElementById('pay').style.display = 'none';
+            } catch (error) {
+                document.getElementById('status').innerText = 'Payment failed: ' + error.message;
             }
-            if (poll.status === 'failed') {
-                throw new Error('Art generation failed');
-            }
-            await new Promise(r => setTimeout(r, 2000));
-        }
-
-        document.getElementById('output').src = output;
-        document.getElementById('status').innerText = 'Art generated successfully!';
-    } catch (error) {
-        document.getElementById('status').innerText = 'Art generation failed: ' + error.message;
+        });
+    } else {
+        console.error('Pay button not found');
     }
-});
 
-// Initialize and Connect
-document.getElementById('connect').addEventListener('click', async () => {
-    try {
-        document.getElementById('status').innerText = 'Connecting...';
-        await initWalletConnect();
-        // Prompt user to choose wallet (simplified to browser for now)
-        await connectBrowserWallet();
-    } catch (error) {
-        document.getElementById('status').innerText = 'Connection failed: ' + error.message;
+    // Generate Art
+    const generateButton = document.getElementById('generate');
+    if (generateButton) {
+        generateButton.addEventListener('click', async () => {
+            try {
+                const statusEl = document.getElementById('status');
+                if (!statusEl) throw new Error('Status element not found');
+                statusEl.innerText = 'Generating art...';
+                const prompt = document.getElementById('prompt').value;
+                const imageFile = document.getElementById('image').files[0];
+                if (!imageFile) {
+                    statusEl.innerText = 'Please upload an image';
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('image', imageFile);
+                const imageResponse = await fetch('https://api.imgur.com/3/image', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { Authorization: 'Client-ID 546c25a59c58ad7' } // Move to backend
+                }).then(res => res.json());
+                if (!imageResponse.success) throw new Error('Image upload failed');
+
+                const imageUrl = imageResponse.data.link;
+                const response = await fetch('https://api.replicate.com/v1/predictions', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Token ${REPLICATE_API_TOKEN}`, // Move to backend
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        version: 'lucataco/flux-kontext-dev:1.0', // Verify version
+                        input: { prompt: prompt, image: imageUrl, steps: 20, guidance_scale: 2.5 }
+                    })
+                }).then(res => res.json());
+
+                if (!response.urls?.get) throw new Error('Invalid Replicate API response');
+
+                let output;
+                while (true) {
+                    const poll = await fetch(response.urls.get).then(res => res.json());
+                    if (poll.status === 'succeeded') {
+                        output = poll.output[0];
+                        break;
+                    }
+                    if (poll.status === 'failed') {
+                        throw new Error('Art generation failed');
+                    }
+                    await new Promise(r => setTimeout(r, 2000));
+                }
+
+                document.getElementById('output').src = output;
+                statusEl.innerText = 'Art generated successfully!';
+            } catch (error) {
+                document.getElementById('status').innerText = 'Art generation failed: ' + error.message;
+            }
+        });
+    } else {
+        console.error('Generate button not found');
+    }
+
+    // Connect Wallet
+    const connectButton = document.getElementById('connect');
+    if (connectButton) {
+        connectButton.addEventListener('click', async () => {
+            try {
+                const statusEl = document.getElementById('status');
+                if (!statusEl) throw new Error('Status element not found');
+                statusEl.innerText = 'Connecting...';
+                await initWalletConnect();
+                await connectBrowserWallet(); // Default to browser; add modal for WalletConnect choice
+            } catch (error) {
+                document.getElementById('status').innerText = 'Connection failed: ' + error.message;
+            }
+        });
+    } else {
+        console.error('Connect button not found');
     }
 });
