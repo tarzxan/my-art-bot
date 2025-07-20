@@ -2,12 +2,15 @@
 <html>
 <head>
     <title>Your Art Bot</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <!-- web3.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <!-- WalletConnect v2 SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.10.0/dist/umd/index.min.js"></script>
     <script src="script.js"></script>
 </head>
 <body>
     <h1>Welcome to Your Art Bot - Powered by Flux Kontext</h1>
-    <button id="connect">Connect Coinbase Wallet</button>
+    <button id="connect">Connect Wallet</button>
     <p id="status"></p>
     <button id="pay" style="display:none">Pay 100 BIRDDOG for Access</button>
     <div id="generator" style="display:none">
