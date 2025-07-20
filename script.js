@@ -1,7 +1,6 @@
 // script.js
 const REPLICATE_API_TOKEN = 'r8_JgsNAJuVvWV1JDh90LziKuze13N3Anc36Tdap';
-const ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
-let signer, address;
+let ethersProvider, signer, address, contract;
 
 const contractAddress = '0xcc0aCe3b131E6a26bc16a34EF0277BDAbB24e9c9';
 const abi = [
@@ -126,15 +125,19 @@ const abi = [
         "type": "function"
     }
 ];
-const contract = new ethers.Contract(contractAddress, abi, signer);
 const tokenAddress = '0x92AF6F53fEbd6B4C6F5293840B6076A1B82c4BC2';
 const tokenAbi = ['function approve(address spender, uint256 amount) external returns (bool)'];
 
 document.getElementById('connect').addEventListener('click', async () => {
     try {
+        if (!window.ethereum) {
+            throw new Error('No Web3 provider detected. Install MetaMask or Coinbase Wallet extension.');
+        }
+        ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
         await ethersProvider.send("eth_requestAccounts", []);
         signer = ethersProvider.getSigner();
         address = await signer.getAddress();
+        contract = new ethers.Contract(contractAddress, abi, signer);
         const hasAccess = await contract.hasAccess(address);
         if (hasAccess) {
             document.getElementById('status').innerText = 'Access granted via NFT';
