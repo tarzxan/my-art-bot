@@ -157,6 +157,9 @@ const BASE_CHAIN_ID = 8453; // Base Mainnet
 // Initialize WalletConnect
 async function initWalletConnect() {
     try {
+        if (!window.EthereumProvider) {
+            throw new Error('WalletConnect EthereumProvider not loaded. Check CDN.');
+        }
         walletConnectProvider = await window.EthereumProvider.init({
             projectId: 'YOUR_WALLET_CONNECT_PROJECT_ID', // Replace with your real WalletConnect Project ID
             chains: [BASE_CHAIN_ID],
@@ -230,6 +233,7 @@ async function connectBrowserWallet() {
 // Connect WalletConnect
 async function connectWalletConnect() {
     try {
+        await initWalletConnect();
         await walletConnectProvider.connect();
         if (await initWeb3(walletConnectProvider)) {
             await checkAccess();
@@ -355,8 +359,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const statusEl = document.getElementById('status');
                 if (!statusEl) throw new Error('Status element not found');
                 statusEl.innerText = 'Connecting...';
-                await initWalletConnect();
-                await connectBrowserWallet(); // Default to browser; add modal for WalletConnect choice
+                // Temporarily default to MetaMask; add WalletConnect once Project ID is provided
+                await connectBrowserWallet();
+                // Uncomment below to enable WalletConnect after adding Project ID
+                // await initWalletConnect();
+                // await connectWalletConnect();
             } catch (error) {
                 document.getElementById('status').innerText = 'Connection failed: ' + error.message;
             }
