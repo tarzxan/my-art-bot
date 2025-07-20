@@ -2,19 +2,24 @@
 <html>
 <head>
     <title>Your Art Bot</title>
-    <!-- web3.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
-    <!-- WalletConnect v2 SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.10.0/dist/umd/index.min.js"></script>
-    <script src="script.js"></script>
+    <script defer src="script.js"></script> <!-- Add defer to ensure DOM is loaded -->
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px 0; }
+        input[type="text"], input[type="file"] { width: 100%; padding: 10px; margin: 10px 0; }
+        img { max-width: 100%; height: auto; }
+        #status { color: #333; }
+    </style>
 </head>
 <body>
     <h1>Welcome to Your Art Bot - Powered by Flux Kontext</h1>
     <button id="connect">Connect Wallet</button>
-    <p id="status"></p>
+    <p id="status">Click "Connect Wallet" to start</p>
     <button id="pay" style="display:none">Pay 100 BIRDDOG for Access</button>
     <div id="generator" style="display:none">
-        <input id="prompt" placeholder="Edit prompt, e.g., 'Add red hat to image'">
+        <input id="prompt" placeholder="Edit prompt, e.g., 'Add red hat to image'" type="text">
         <input type="file" id="image" accept="image/*">
         <button id="generate">Generate Art</button>
         <img id="output" src="" alt="Generated Art">
