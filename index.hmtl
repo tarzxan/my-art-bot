@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Art Bot</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+    <script src="script.js"></script>
+</head>
+<body>
+    <h1>Welcome to Your Art Bot - Powered by Flux Kontext</h1>
+    <button id="connect">Connect Coinbase Wallet</button>
+    <p id="status"></p>
+    <button id="pay" style="display:none">Pay 100 BIRDDOG for Access</button>
+    <div id="generator" style="display:none">
+        <input id="prompt" placeholder="Edit prompt, e.g., 'Add red hat to image'">
+        <input type="file" id="image" accept="image/*">
+        <button id="generate">Generate Art</button>
+        <img id="output" src="" alt="Generated Art">
+    </div>
+</body>
+</html>
